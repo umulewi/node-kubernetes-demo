@@ -1,10 +1,5 @@
 name: Release Docker Image
 
-# Give the workflow permission to write packages so pushes to GHCR can succeed
-permissions:
-  contents: read
-  packages: write
-
 on:
   push:
     tags:
@@ -55,33 +50,12 @@ jobs:
           name: webapp-build
           path: ./dist
 
-      - name: Log in to GitHub Container Registry (using PAT)
-        if: ${{ secrets.GHCR_PAT }}
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          # Use a personal access token stored in `GHCR_PAT` for package publish access.
-          # Create a PAT with `read:packages` and `write:packages` (and `repo` if repo is private),
-          # then add it to repository Secrets as `GHCR_PAT`.
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Log in to GitHub Container Registry (fallback to GITHUB_TOKEN)
-        if: ${{ !secrets.GHCR_PAT }}
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          # Fallback to the automatically provided GITHUB_TOKEN for public repos or when org policy allows
-          password: ${{ github.token }}
-
-      - name: Which auth was used
-        run: |
-          if [ -n "${{ secrets.GHCR_PAT }}" ]; then
-            echo "Using GHCR_PAT for GHCR login";
-          else
-            echo "Using GITHUB_TOKEN for GHCR login";
-          fi
+          password: ${{ secrets.CR_PAT }}
 
       - name: Build Docker image
         run: |
